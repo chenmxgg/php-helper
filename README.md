@@ -18,7 +18,9 @@ QQ：857285711
 目前功能还未完善，后续将完善其他功能类
 
 ```bash
-$ composer require chenm/helper
+#安装命令如下 注意，需要在服务器命令行的项目下执行
+cd "自己的项目路径"
+composer require chenm/helper
 ```
 Log类支持自动清理过期日志，具体参数请参考源代码
 ```php
