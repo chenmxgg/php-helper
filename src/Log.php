@@ -14,6 +14,55 @@ use Monolog\Logger as baseLog;
  */
 class Log
 {
+    /**
+     * Detailed debug information
+     */
+    public const DEBUG = 100;
+
+    /**
+     * Interesting events
+     *
+     * Examples: User logs in, SQL logs.
+     */
+    public const INFO = 200;
+
+    /**
+     * Uncommon events
+     */
+    public const NOTICE = 250;
+
+    /**
+     * Exceptional occurrences that are not errors
+     *
+     * Examples: Use of deprecated APIs, poor use of an API,
+     * undesirable things that are not necessarily wrong.
+     */
+    public const WARNING = 300;
+
+    /**
+     * Runtime errors
+     */
+    public const ERROR = 400;
+
+    /**
+     * Critical conditions
+     *
+     * Example: Application component unavailable, unexpected exception.
+     */
+    public const CRITICAL = 500;
+
+    /**
+     * Action must be taken immediately
+     *
+     * Example: Entire website down, database unavailable, etc.
+     * This should trigger the SMS alerts and wake you up.
+     */
+    public const ALERT = 550;
+
+    /**
+     * Urgent alert.
+     */
+    public const EMERGENCY = 600;
 
     /**
      * 日志容器
@@ -25,6 +74,14 @@ class Log
      */
     private static $instance = null;
 
+    /**
+     * 是否记录运行日志
+     */
+    public static $log_write = true;
+
+    /**
+     * 运行日志
+     */
     public static $log = null;
 
     /**
@@ -40,6 +97,11 @@ class Log
 
     private static $log_name = 'ChenmLogs';
 
+    /**
+     * 自定义时间路径
+     */
+    private static $path_date_format = '{Ym}/{d}';
+
     public function __construct()
     {
         // 清理过期日志
@@ -47,7 +109,7 @@ class Log
     }
 
     /**
-     * 获取单例
+     * 获取单例 成功后返回对象可链式操作
      */
     public static function getInstance()
     {
@@ -59,10 +121,22 @@ class Log
 
     /**
      * 设置日志目录名称 默认[ChenmLogs]
+     * @param string $name 日志名称
      */
-    public static function setLogDirName(string $name = 'ChenmLogs')
+    public function setLogDirName(string $name = 'ChenmLogs')
     {
         self::$log_name = $name;
+        return self::getInstance();
+    }
+
+    /**
+     * 设置是否记录运行日志
+     * @param bool $value 是否记录
+     */
+    public function setLogWrite(bool $value = false)
+    {
+        self::$log_write = $value;
+        return self::getInstance();
     }
 
     /**
@@ -74,7 +148,7 @@ class Log
      * %context% 内容
      * %extra% 扩展信息
      */
-    public static function setLineOutputFormatter(string $format = '')
+    public function setLineOutputFormatter(string $format = '')
     {
         self::$output_formatter = $format;
     }
@@ -135,7 +209,7 @@ class Log
         $options['name'] = ucfirst($options['name']);
         if (isset($options['dir']) && $options['dir'] && isset($options['filename'])) {
             $options['path'] = $options['dir'] . DS . $options['name'] . DS;
-            $options['path'] .= date('Ymd') . DS;
+            $options['path'] .= self::parseDateDir() . DS;
             switch ($options['log_level']) {
                 case 'm':
                     //分
@@ -151,6 +225,22 @@ class Log
             $options['construct']['filename'] = $options['path'];
         }
     }
+
+    private function parseDateDir()
+    {
+        $path_date_format = self::$path_date_format;
+        if (!$path_date_format) {
+            $path_date_format = '{Ym}/{d}';
+        }
+        // self::setLog('|-路径格式:' . $path_date_format);
+        $path_dir = str_replace(['Y', 'm', 'd', '{', '}'], [date('Y'), date('m'), date('d'), '', ''], $path_date_format);
+        if (!$path_dir) {
+            $path_dir = date('Ym') . DS . date('d');
+        }
+        self::setLog('|-时间路径:' . $path_dir);
+        return rtrim($path_dir, DS);
+    }
+
     /**
      * 解析目录
      */
@@ -173,7 +263,27 @@ class Log
         return $newDir;
     }
 
-    public function write(string $message = '', ?array $context = [], ?array $options)
+    /**
+     * 写入自定义级别日志 其他配置请通过set开头方法设置
+     * @param int    $level     级别 参见\Chenm\Helper\Log::的常量
+     * @param string $message   日志标题
+     * @param array  $context   日志内容
+     * @param string $name      容器名称
+     */
+    public function write(int $level, string $message = '', ?array $context = [], string $name = 'Default')
+    {
+        self::getInstance()->addRecord($message, $context, ['name' => $name], $level);
+        return self::getInstance();
+    }
+
+    /**
+     * 写入日志
+     * @param string $message   日志标题
+     * @param array  $context   日志内容
+     * @param array  $options   日志选项
+     * @param int    $level     级别
+     */
+    public function addRecord(string $message = '', ?array $context = [], ?array $options, ?int $level = Log::INFO)
     {
 
         try {
@@ -205,7 +315,7 @@ class Log
             self::setLog('|-日志标题:' . $message);
             self::setLog('|-日志路径:' . $options['path']);
             self::setLog('|-日志内容:' . json_encode($context));
-            return self::$container[$name]['logger']->addRecord(baseLog::INFO, $message, $context);
+            return self::$container[$name]['logger']->addRecord($level, $message, $context);
         } catch (\Throwable $th) {
             self::setLog('日志写入错误：' . $th->getMessage());
         }
@@ -215,12 +325,12 @@ class Log
      * 快捷写入Debug日志
      * @param string $msg 日志内容
      */
-    public static function debug(string $msg = '', array $context = [])
+    public function debug(string $msg = '', array $context = [])
     {
-        self::getInstance()->write($msg, $context, [
+        self::getInstance()->addRecord($msg, $context, [
             'name' => 'Debug',
             'expire' => 15,
-        ]);
+        ], Log::DEBUG);
         return self::getInstance();
     }
 
@@ -228,12 +338,12 @@ class Log
      * 快捷写入用户日志
      * @param string $msg 日志内容
      */
-    public static function user(string $msg = '', array $context = [])
+    public function user(string $msg = '', array $context = [])
     {
-        self::getInstance()->write($msg, $context, [
+        self::getInstance()->addRecord($msg, $context, [
             'name' => 'User',
             'expire' => 7,
-        ]);
+        ], Log::INFO);
         return self::getInstance();
     }
 
@@ -241,12 +351,12 @@ class Log
      * 快捷写入系统日志
      * @param string $msg 日志内容
      */
-    public static function system(string $msg = '', array $context = [])
+    public function system(string $msg = '', array $context = [])
     {
-        self::getInstance()->write($msg, $context, [
+        self::getInstance()->addRecord($msg, $context, [
             'name' => 'System',
             'expire' => 15,
-        ]);
+        ], Log::NOTICE);
         return self::getInstance();
     }
 
@@ -254,9 +364,11 @@ class Log
      * 写入运行日志
      * @param string $msg 日志内容
      */
-    public static function setLog(string $msg = '')
+    private static function setLog(string $msg = '')
     {
-        self::$log .= "\n" . $msg;
+        if (self::$log_write) {
+            self::$log .= "\n" . $msg;
+        }
     }
 
     /**
