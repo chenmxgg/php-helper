@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImiApp\ApiServer\Common\Util\Log;
+namespace Chenm\Helper\Log;
 
 use Imi\Cli\ImiCommand;
 use Imi\Log\MonoLogger;
