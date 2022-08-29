@@ -109,6 +109,7 @@ class Log
 
     public function __construct()
     {
+        !defined('DS') && define('DS', DIRECTORY_SEPARATOR);
         !defined('RUNTIME_PATH') && define('RUNTIME_PATH', __DIR__ . '/../../../../.runtime/');
         self::$save_dir = RUNTIME_PATH;
         File::checkDir(self::$save_dir);
