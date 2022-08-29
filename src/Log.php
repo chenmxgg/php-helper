@@ -125,6 +125,7 @@ class Log
     {
         self::$save_dir = $save_dir;
         File::checkDir(self::$save_dir);
+        return self::$instance;
     }
 
     /**
@@ -179,6 +180,7 @@ class Log
     public function setLineOutputFormatter(string $format = '')
     {
         self::$output_formatter = $format;
+        return self::getInstance();
     }
 
     /**
