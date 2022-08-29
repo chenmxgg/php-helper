@@ -30,7 +30,7 @@ Log::getInstance()->setLogWrite(true)->user('测试日志内容')->getLog();
 #配置自定义参数
 Log::getInstance()->addRecord($msg, $context, [
     //日志目录
-    'dir' => '储存路径',
+    'dir' => '储存文件夹路径(不含文件名)',
     //日志容器名称
     'name' => 'Default',
     //日志文件名称
