@@ -24,7 +24,20 @@ Log类支持自动清理过期日志，具体参数请参考源代码
 ```php
 #使用例子 
 use Chenm\Helper\Log;
-Log::getInstance()->setSaveDir(__DIR__)->write();
+Log::getInstance()->setSaveDir(__DIR__)->write(Log::ERROR, '测试日志内容');
 Log::getInstance()->setLogWrite(false)->write(Log::ERROR, '测试日志内容')->getLog();
 Log::getInstance()->setLogWrite(true)->user('测试日志内容')->getLog();
+#配置自定义参数
+Log::getInstance()->addRecord($msg, $context, [
+    //日志目录
+    'dir' => self::$save_dir . self::$log_name,
+    //日志容器名称
+    'name' => 'Default',
+    //日志文件名称
+    'filename' => 'log.txt',
+    //日志单天记录级别 h 时 m 分
+    'log_level' => 'h',
+    //日志文件过期时间 单位天
+    'expire' => 7,
+], Log::INFO);
 ```
