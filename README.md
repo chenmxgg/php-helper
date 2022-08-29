@@ -20,3 +20,11 @@ QQ：857285711
 ```bash
 $ composer require chenm/helper
 ```
+Log类支持自动清理过期日志，具体参数请参考源代码
+```php
+#使用例子 
+use Chenm\Helper\Log;
+Log::getInstance()->setSaveDir(__DIR__)->write();
+Log::getInstance()->setLogWrite(false)->write(Log::ERROR, '测试日志内容')->getLog();
+Log::getInstance()->setLogWrite(true)->user('测试日志内容')->getLog();
+```
