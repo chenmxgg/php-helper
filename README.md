@@ -22,7 +22,7 @@ QQ：857285711
 cd "自己的项目路径"
 composer require chenm/helper
 ```
-Log类支持自动清理过期日志，具体参数请参考源代码
+Log类支持自动清理过期日志，友好的单例获取并支持链式操作，方便多个容器储存分开使用
 ```php
 #使用例子 
 use Chenm\Helper\Log;
