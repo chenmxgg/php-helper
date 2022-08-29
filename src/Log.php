@@ -65,6 +65,11 @@ class Log
     public const EMERGENCY = 600;
 
     /**
+     * 本地日志储存路径
+     */
+    public static $save_dir = '';
+
+    /**
      * 日志容器
      */
     public static $container = [];
@@ -104,11 +109,30 @@ class Log
 
     public function __construct()
     {
-        !defined('DS') && define('DS', DIRECTORY_SEPARATOR);
-        !defined('RUNTIME_PATH') && define('RUNTIME_PATH', dirname(dirname(dirname(dirname(__DIR__)))) . DS . '.runtime');
-        File::checkDir(RUNTIME_PATH);
+        !defined('RUNTIME_PATH') && define('RUNTIME_PATH', __DIR__ . '/../../../../.runtime/');
+        self::$save_dir = RUNTIME_PATH;
+        File::checkDir(self::$save_dir);
         // 清理过期日志
         self::clear();
+    }
+
+    /**
+     * 设置本地方式日志储存路径 如 /www/wwwroot/xxx.site.cn/.runtime/
+     * @return string 储存路径
+     */
+    public function setSaveDir($save_dir)
+    {
+        self::$save_dir = $save_dir;
+        File::checkDir(self::$save_dir);
+    }
+
+    /**
+     * 获取本地方式日志储存路径
+     * @return string 储存路径
+     */
+    public function getSaveDir()
+    {
+        return self::$save_dir;
     }
 
     /**
@@ -163,7 +187,7 @@ class Log
     {
         return [
             //日志目录
-            'dir' => RUNTIME_PATH . self::$log_name,
+            'dir' => self::$save_dir . self::$log_name,
             //日志容器名称
             'name' => 'Default',
             //日志文件名称
