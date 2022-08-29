@@ -34,7 +34,7 @@
             "Chenm\\Helper\\": "tests/"
         },
         "files": [
-            "src/functions.php"
+            "tests/functions.php"
         ]
     },
     "config": {
