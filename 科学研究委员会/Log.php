@@ -119,7 +119,7 @@ class Log
 
     /**
      * 设置本地方式日志储存路径 如 /www/wwwroot/xxx.site.cn/.runtime/
-     * @return string 储存路径
+     * @param string 储存路径
      */
     public function setSaveDir($save_dir)
     {
