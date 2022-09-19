@@ -103,6 +103,11 @@ class Log
     private static $log_name = 'ChenmLogs';
 
     /**
+     * 清空上次执行日志
+     */
+    public static $claer_last_log = false;
+
+    /**
      * 自定义时间路径
      */
     private static $path_date_format = '{Ym}/{d}';
@@ -135,6 +140,16 @@ class Log
     public function getSaveDir()
     {
         return self::$save_dir;
+    }
+
+    /**
+     * 设置是否清除上次执行日志
+     * @param bool $value 是否清除
+     */
+    public function setClaerLastLog(bool $value)
+    {
+        self::$claer_last_log = $value;
+        return self::$instance;
     }
 
     /**
@@ -190,15 +205,15 @@ class Log
     {
         return [
             //日志目录
-            'dir' => self::$save_dir . self::$log_name,
+            'dir'       => self::$save_dir . self::$log_name,
             //日志容器名称
-            'name' => 'Default',
+            'name'      => 'Default',
             //日志文件名称
-            'filename' => 'log.txt',
+            'filename'  => 'log.txt',
             //日志单天记录级别 h 时 m 分
             'log_level' => 'h',
             //日志文件过期时间 单位天
-            'expire' => 7,
+            'expire'    => 7,
         ];
     }
 
@@ -208,7 +223,7 @@ class Log
     public static function clear()
     {
         $container = self::$container;
-        $nowDay = date("Ymd");
+        $nowDay    = date("Ymd");
         foreach ($container as $key => $value) {
             if (isset($value['options'])) {
                 $options = $value['options'];
@@ -256,7 +271,7 @@ class Log
         }
     }
 
-    private function parseDateDir()
+    private static function parseDateDir()
     {
         $path_date_format = self::$path_date_format;
         if (!$path_date_format) {
@@ -276,8 +291,8 @@ class Log
      */
     public static function parseDir(string $dir = '')
     {
-        $dir = rtrim($dir, DS);
-        $arr = explode(DS, $dir);
+        $dir    = rtrim($dir, DS);
+        $arr    = explode(DS, $dir);
         $newDir = '';
         if ($arr) {
             foreach ($arr as $key => $value) {
@@ -316,6 +331,11 @@ class Log
     public function addRecord(string $message = '', ?array $context = [], ?array $options, ?int $level = Log::INFO)
     {
 
+        // self::clear();
+        if (self::$log_write && self::$claer_last_log) {
+            self::$log = '';
+        }
+
         try {
             $defaultOptions = self::getDefaultOptions();
             if (!is_null($options)) {
@@ -328,14 +348,14 @@ class Log
             $name = $options['name'];
             if (!isset(self::$container[$name]) || !is_object(self::$container[$name])) {
                 self::$container[$name] = [
-                    'logger' => new baseLog($name),
+                    'logger'  => new baseLog($name),
                     'options' => $options,
                 ];
 
                 $logger = self::$container[$name]['logger'];
                 //文件保存本地
                 $stream_handler = new StreamHandler($options['path']);
-                $dateFormat = "Y-m-d H:i:s"; # 自定义时间格式
+                $dateFormat     = "Y-m-d H:i:s"; # 自定义时间格式
                 # 将日志数据转化为一行字符, 可自定义格式
                 $line_formatter = new MonoLineFormatter(self::$output_formatter, $dateFormat);
                 $stream_handler->setFormatter($line_formatter); # 定义日志内容
@@ -347,7 +367,7 @@ class Log
             self::setLog('|-日志内容:' . json_encode($context));
             return self::$container[$name]['logger']->addRecord($level, $message, $context);
         } catch (\Throwable $th) {
-            self::setLog('日志写入错误：' . $th->getMessage());
+            self::setLog('日志写入错误：' . $th->getMessage(), ['traces' => App::isDebug() ? $th->getTrace() : []]);
         }
     }
 
@@ -358,7 +378,7 @@ class Log
     public function debug(string $msg = '', array $context = [])
     {
         self::getInstance()->addRecord($msg, $context, [
-            'name' => 'Debug',
+            'name'   => 'Debug',
             'expire' => 15,
         ], Log::DEBUG);
         return self::getInstance();
@@ -371,7 +391,7 @@ class Log
     public function user(string $msg = '', array $context = [])
     {
         self::getInstance()->addRecord($msg, $context, [
-            'name' => 'User',
+            'name'   => 'User',
             'expire' => 7,
         ], Log::INFO);
         return self::getInstance();
@@ -384,7 +404,7 @@ class Log
     public function system(string $msg = '', array $context = [])
     {
         self::getInstance()->addRecord($msg, $context, [
-            'name' => 'System',
+            'name'   => 'System',
             'expire' => 15,
         ], Log::NOTICE);
         return self::getInstance();
@@ -397,7 +417,7 @@ class Log
     private static function setLog(string $msg = '')
     {
         if (self::$log_write) {
-            self::$log .= "\n" . $msg;
+            self::$log .= "<br/>\n" . $msg;
         }
     }
 
