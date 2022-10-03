@@ -108,6 +108,15 @@ class Log
     public static $claer_last_log = false;
 
     /**
+     * 是否Dbug模式
+     * @return bool
+     */
+    public static function isDebug()
+    {
+        return self::$log_write === true;
+    }
+
+    /**
      * 自定义时间路径
      */
     private static $path_date_format = '{Ym}/{d}';
@@ -125,6 +134,7 @@ class Log
     /**
      * 设置本地方式日志储存路径 如 /www/wwwroot/xxx.site.cn/.runtime/
      * @param string 储存路径
+     * @return Log
      */
     public function setSaveDir($save_dir)
     {
@@ -154,6 +164,7 @@ class Log
 
     /**
      * 获取单例 成功后返回对象可链式操作
+     * @return Log
      */
     public static function getInstance()
     {
@@ -166,6 +177,7 @@ class Log
     /**
      * 设置日志目录名称 默认[ChenmLogs]
      * @param string $name 日志名称
+     * @return Log
      */
     public function setLogDirName(string $name = 'ChenmLogs')
     {
@@ -176,6 +188,7 @@ class Log
     /**
      * 设置是否记录运行日志
      * @param bool $value 是否记录
+     * @return Log
      */
     public function setLogWrite(bool $value = false)
     {
@@ -191,6 +204,7 @@ class Log
      * %message% 标题
      * %context% 内容
      * %extra% 扩展信息
+     * @return Log
      */
     public function setLineOutputFormatter(string $format = '')
     {
@@ -367,7 +381,7 @@ class Log
             self::setLog('|-日志内容:' . json_encode($context));
             return self::$container[$name]['logger']->addRecord($level, $message, $context);
         } catch (\Throwable $th) {
-            self::setLog('日志写入错误：' . $th->getMessage(), ['traces' => App::isDebug() ? $th->getTrace() : []]);
+            self::setLog('日志写入错误：' . $th->getMessage(), ['traces' => self::isDebug() ? $th->getTrace() : []]);
         }
     }
 

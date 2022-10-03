@@ -250,3 +250,68 @@ if (!function_exists('filter')) {
         return $data;
     }
 }
+
+if (!function_exists('buildDataChildren')) {
+    /**
+     * 生成带子节点的结构数据
+     * @param  int    $pid          父节点ID
+     * @param  array  $arrayList    子节点数据
+     * @param  array  $options      配置信息 parentField 父节点字段名称 childName 子节点集字段名称
+     * @return array
+     */
+    function buildDataChildren($pid, $arrayList, array $options = [])
+    {
+        if (!isset($options['parentField'])) {
+            $options['parentField'] = 'pid';
+        }
+        if (!isset($options['childName'])) {
+            $options['childName'] = 'children';
+        }
+        if (!isset($options['keyField'])) {
+            $options['keyField'] = 'id';
+        }
+        $treeList = [];
+        foreach ($arrayList as $v) {
+            if ($pid == $v[$options['parentField']]) {
+                $node     = $v;
+                $children = null;
+                if (isset($v[$options['keyField']]) && $v[$options['keyField']]) {
+                    $children = buildDataChildren(
+                        $v[$options['keyField']],
+                        $arrayList,
+                        $options
+                    );
+                }
+                $node[$options['childName']] = [];
+                if (!empty($children) && count($children) > 0) {
+                    $node[$options['childName']] = $children;
+                }
+                // todo 后续此处加上用户的权限判断
+                $treeList[] = $node;
+            }
+        }
+        return $treeList;
+    }
+}
+
+if (!function_exists('modelToArray')) {
+    /**
+     * 模型数组列表转原生数组
+     * @param  array $rs
+     * @return array
+     */
+    function modelToArray(array $rs): array
+    {
+        $data = [];
+        if (is_array($rs)) {
+            foreach ($rs as $key => $value) {
+                if (is_object($value)) {
+                    $data[$key] = $value->toArray();
+                } else {
+                    $data[$key] = $value;
+                }
+            }
+        }
+        return $data;
+    }
+}
